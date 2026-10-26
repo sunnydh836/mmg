@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mahadev Mobile Gallery & Repairing
+
+A production-ready Next.js application for the Mahadev Mobile Gallery storefront and administrative panel.
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies:
 
 ```bash
+npm install
+```
+
+Copy the `.env.example` file to `.env` and fill in your values.
+Ensure you have a PostgreSQL database actively running.
+
+```bash
+cp .env.example .env
+```
+
+Apply database migrations and start the server:
+
+```bash
+npx prisma generate
+npx prisma db push
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
+The following environment variables are required natively:
+* `DATABASE_URL`: Your PostgreSQL connection string.
+* `JWT_SECRET`: A strong string used to sign admin session cookies.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment Steps
 
-## Learn More
+This project can be deployed easily on Vercel or any Node.js hosting platform (VPS/Docker).
 
-To learn more about Next.js, take a look at the following resources:
+### Vercel Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Connect your GitHub repository to Vercel.
+2. In the Vercel dashboard for your project, go to **Settings > Environment Variables**.
+3. Add `DATABASE_URL` pointing to a production Postgres (e.g. Supabase, Neon, RDS).
+4. Add `JWT_SECRET` (generate a random 32-character string).
+5. Ensure the Build Command is `npm run build` and Install Command is `npm install`.
+6. Deploy. Vercel automatically detects Next.js.
+7. Note: For local disk storage of images, a host like Vercel with ephemeral storage will NOT persist image uploads. You will need to migrate `src/lib/storage.ts` to S3 or a similar object store for serverless hosting. If deploying on a VPS, local disk storage will persist normally in `public/uploads`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### VPS / Traditional Deployment
+1. Clone the repository on your server.
+2. Run `npm install`.
+3. Set your `.env` variables (`DATABASE_URL`, `JWT_SECRET`).
+4. Run `npx prisma generate` and `npx prisma db push`.
+5. Run `npm run build`.
+6. Start the app via PM2: `pm2 start npm --name "mmg-web" -- run start`.
+7. Setup Nginx as a reverse proxy to forward port 80/443 to localhost:3000.

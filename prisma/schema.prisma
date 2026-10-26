@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id            String        @id @default(cuid())
+  username      String        @unique
+  password      String
+  securityEmail String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  devices       AdminDevice[]
+}
+
+model AdminDevice {
+  id          String    @id @default(cuid())
+  adminUserId String
+  deviceId    String    @unique
+  deviceName  String
+  userAgent   String?
+  ipAddress   String?
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime  @default(now())
+  expiresAt   DateTime
+  revokedAt   DateTime?
+
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+}
+
+model OtpToken {
+  id         String   @id @default(cuid())
+  identifier String
+  tokenHash  String
+  purpose    String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([identifier])
+}
+
+model Product {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  name             String
+  brandId          String
+  categoryId       String
+  type             String   @default("NEW") // NEW, USED, REFURBISHED
+  price            Float?
+  mrp              Float?
+  shortDescription String?
+  description      String?  @db.Text
+  availability     String   @default("In Stock")
+  featured         Boolean  @default(false)
+  isDemo           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  brand    Brand          @relation(fields: [brandId], references: [id])
+  category Category       @relation(fields: [categoryId], references: [id])
+  images   ProductImage[]
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  imageUrl  String
+  altText   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  products  Product[]
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  products  Product[]
+}
+
+model GalleryImage {
+  id           String   @id @default(cuid())
+  imageUrl     String
+  title        String?
+  category     String   @default("STORE") // STORE, PHONES, ACCESSORIES, EVENTS
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model HeroImage {
+  id           String   @id @default(cuid())
+  imageUrl     String
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model InstagramReel {
+  id              String   @id @default(cuid())
+  title           String?
+  reelUrl         String
+  thumbnailUrl    String?
+  thumbnailSource String   @default("INSTAGRAM") // INSTAGRAM, CUSTOM, FALLBACK
+  displayOrder    Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  icon        String?
+  features    String[] @default([])
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Offer {
+  id               String    @id @default(cuid())
+  title            String
+  description      String    @db.Text
+  shortDescription String?
+  imageUrl         String?
+  badge            String?
+  ctaText          String?
+  ctaLink          String?
+  displayOrder     Int       @default(0)
+  startDate        DateTime?
+  endDate          DateTime?
+  discountCode     String?
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model StoreSettings {
+  id                 Int    @id @default(1)
+  businessName       String @default("Mahadev Mobile Gallery & Repairing")
+  displayName        String @default("Mahadev Mobile Gallery")
+  tagline            String @default("Mobiles • Accessories • Repairing")
+  logoUrl            String?
+  phone              String @default("7942699103")
+  whatsapp           String @default("7942699103")
+  address            String @default("WJ8W+6G8, Gagol Rd, Sector 2, MDA, Aminagar Urf Bhurbaral, Meerut, Uttar Pradesh 250103")
+  mapsUrl            String @default("https://maps.app.goo.gl/LDTKxDF47u14HLuW6")
+  mapsEmbedUrl       String @default("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3160.457420305377!2d77.6438418793457!3d28.91560440000002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390c6100574a5789%3A0xe73bcfca3eda0e8f!2sMmg%20partapur%20mahadev%20mobile%20gallery%20gogol%20road!5e1!3m2!1sen!2sin!4v1790780736528!5m2!1sen!2sin")
+  openingTime        String @default("09:00")
+  closingTime        String @default("22:00")
+  weeklyOff          String @default("unknown")
+  email              String @default("placeholder")
+  instagram          String @default("https://www.instagram.com/mmgpartapur")
+  youtube            String @default("https://www.youtube.com/@mmgpartapur001")
+  facebook           String @default("")
+  instagramFollowers String @default("117000")
+  openingHoursNote   String?
+
+  // Business Rules
+  hasEmi              Boolean @default(false)
+  hasPreOrder         Boolean @default(false)
+  hasOnlineOrdering   Boolean @default(false)
+  hasOnlineCheckout   Boolean @default(false)
+  hasWhatsappEnquiry  Boolean @default(true)
+  hasOldPhonePurchase Boolean @default(true)
+  hasOldPhoneExchange Boolean @default(true)
+  hasUsedPhones       Boolean @default(true)
+  hasGifts            Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+}
