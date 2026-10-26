@@ -32,6 +32,17 @@ The following environment variables are required natively:
 * `DATABASE_URL`: Your PostgreSQL connection string.
 * `JWT_SECRET`: A strong string used to sign admin session cookies.
 
+## Move an existing database to Supabase
+
+Run the migration from a computer that can reach the old database. The source database is read-only during this process. The target database must be empty.
+
+1. Copy `.env.migration.example` to `.env.migration` and set `SOURCE_DATABASE_URL` to the old database and `TARGET_DATABASE_URL` to the Supabase **Direct** or **Session pooler** connection string. Keep this file private; `.env*` files are ignored by Git.
+2. Run `npm run db:push` to create every table from `prisma/schema.prisma` in the target database.
+3. Run `npm run db:copy` to copy the records and preserve their IDs and relationships. The script checks that the target has no records before writing.
+4. Set Vercel's `DATABASE_URL` to Supabase's **Transaction pooler** URL, with `pgbouncer=true`, then redeploy. Do not use the transaction pooler for the schema push or data copy.
+
+The copy includes all Prisma models, including admin accounts and session/device records. It does not copy uploaded files stored on disk; those remain in the repository's `public/uploads` directory if tracked.
+
 ## Deployment Steps
 
 This project can be deployed easily on Vercel or any Node.js hosting platform (VPS/Docker).

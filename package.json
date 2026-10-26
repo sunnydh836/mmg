@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "postinstall": "prisma generate",
+    "db:push": "tsx scripts/push-database-schema.ts",
+    "db:copy": "tsx scripts/copy-database.ts",
     "start": "next start",
     "lint": "eslint"
   },
