@@ -12,15 +12,16 @@ import { Section, SectionHeader } from "@/components/ui/Section";
 import { ClientProductList } from "@/components/sections/ClientProductList";
 import prisma from "@/lib/prisma";
 import { getStoreSettings } from "@/lib/settings";
+import { withDatabaseFallback } from "@/lib/database-fallback";
 
 export default async function ProductsPage() {
-    const products = await prisma.product.findMany({
+    const products = await withDatabaseFallback(prisma.product.findMany({
         include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' } } }
-    });
+    }), [], "product list");
 
     // We can map database models to the flat format the component expects or just pass them
-    const brands = await prisma.brand.findMany({ select: { name: true } });
-    const categories = await prisma.category.findMany({ select: { name: true } });
+    const brands = await withDatabaseFallback(prisma.brand.findMany({ select: { name: true } }), [], "brand list");
+    const categories = await withDatabaseFallback(prisma.category.findMany({ select: { name: true } }), [], "category list");
     const settings = await getStoreSettings();
 
     // Map products so ClientProductList doesn't break

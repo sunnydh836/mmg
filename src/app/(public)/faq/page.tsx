@@ -12,11 +12,12 @@ import prisma from "@/lib/prisma";
 import { Section, SectionHeader } from "@/components/ui/Section";
 import { LocationAndFAQ } from "@/components/sections/LocationAndFAQ";
 import { getStoreSettings } from "@/lib/settings";
+import { withDatabaseFallback } from "@/lib/database-fallback";
 
 export default async function Page() {
-  const faqs = await prisma.fAQ.findMany({
+  const faqs = await withDatabaseFallback(prisma.fAQ.findMany({
     orderBy: { sortOrder: 'asc' }
-  });
+  }), [], "FAQ page");
 
   const settings = await getStoreSettings();
 

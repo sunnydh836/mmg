@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
 import { getStoreSettings, getWhatsAppUrl, formatOpeningHours, isWhatsAppEnabled, canBuyOldPhones, canExchangeOldPhones, canSellUsedRefurbished } from "@/lib/settings";
+import { withDatabaseFallback } from "@/lib/database-fallback";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
     const settings = await getStoreSettings();
@@ -18,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ServicesPage() {
     const settings = await getStoreSettings();
-    const rawServices = await prisma.service.findMany({
+    const rawServices = await withDatabaseFallback(prisma.service.findMany({
         where: { isActive: true },
         orderBy: [
             { sortOrder: 'asc' },
@@ -26,7 +29,7 @@ export default async function ServicesPage() {
         ],
         // @ts-ignore
         select: { id: true, title: true, description: true, icon: true, features: true }
-    });
+    }), [], "services page");
 
     const services = rawServices.filter(service => {
         if (service.title === "Old Phone Purchase" && !canBuyOldPhones(settings)) return false;

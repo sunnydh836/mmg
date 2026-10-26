@@ -3,6 +3,10 @@ import { Footer } from "@/components/layout/Footer";
 import { MobileActionBar } from "@/components/layout/MobileActionBar";
 import { getStoreSettings, getWhatsAppUrl, isWhatsAppEnabled, canExchangeOldPhones, canSellUsedRefurbished } from "@/lib/settings";
 
+// Public pages read content from PostgreSQL. Render them at request time so
+// Vercel builds don't attempt to connect to a developer's local database.
+export const dynamic = "force-dynamic";
+
 export default async function PublicLayout({
     children,
 }: Readonly<{

@@ -7,6 +7,7 @@ import { getStoreSettings, getWhatsAppUrl, isWhatsAppEnabled } from "@/lib/setti
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { ProductImageGallery } from "@/components/ui/ProductImageGallery";
+import { withDatabaseFallback } from "@/lib/database-fallback";
 
 
 
@@ -14,10 +15,10 @@ import { Metadata } from 'next';
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await props.params;
-    const dbProduct = await prisma.product.findUnique({
+    const dbProduct = await withDatabaseFallback(prisma.product.findUnique({
         where: { slug: slug },
         include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' } } }
-    });
+    }), null, `product metadata ${slug}`);
 
     if (!dbProduct) return {};
 
@@ -54,10 +55,10 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 
 export default async function ProductDetailPage(props: { params: Promise<{ slug: string }> }) {
     const { slug } = await props.params;
-    const dbProduct = await prisma.product.findUnique({
+    const dbProduct = await withDatabaseFallback(prisma.product.findUnique({
         where: { slug: slug },
         include: { brand: true, category: true, images: { orderBy: { sortOrder: 'asc' } } }
-    });
+    }), null, `product page ${slug}`);
 
     if (!dbProduct) {
         notFound();

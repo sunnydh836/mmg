@@ -6,6 +6,7 @@ import { GalleryClient } from "./GalleryClient";
 import { MapPin, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getStoreSettings, getWhatsAppUrl } from "@/lib/settings";
+import { withDatabaseFallback } from "@/lib/database-fallback";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getStoreSettings();
@@ -20,16 +21,16 @@ export const dynamic = 'force-dynamic';
 export default async function GalleryPage() {
   const settings = await getStoreSettings();
   // 1. Fetch Active Gallery Images
-  const galleryImages = await prisma.galleryImage.findMany({
+  const galleryImages = await withDatabaseFallback(prisma.galleryImage.findMany({
     where: { isActive: true },
     orderBy: { displayOrder: 'asc' }
-  });
+  }), [], "gallery images");
 
   // 2. Fetch Active Instagram Reels
-  const instagramReels = await prisma.instagramReel.findMany({
+  const instagramReels = await withDatabaseFallback(prisma.instagramReel.findMany({
     where: { isActive: true },
     orderBy: { displayOrder: 'asc' }
-  });
+  }), [], "Instagram reels");
 
   return (
     <div className="flex flex-col w-full pb-12 bg-black min-h-screen">

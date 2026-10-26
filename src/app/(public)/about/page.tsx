@@ -13,6 +13,7 @@ import { AboutCTA } from "@/components/sections/about/about-cta";
 import { AboutSocials } from "@/components/sections/about/about-socials";
 
 import { getStoreSettings } from "@/lib/settings";
+import { withDatabaseFallback } from "@/lib/database-fallback";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getStoreSettings();
@@ -22,31 +23,31 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = "force-dynamic";
 
 export default async function AboutPage() {
   // Parallel data fetching for performance
   const [settings, services, galleryImages, heroImages, offers] = await Promise.all([
     getStoreSettings(),
-    prisma.service.findMany({
+    withDatabaseFallback(prisma.service.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' }
-    }),
-    prisma.galleryImage.findMany({
+    }), [], "about services"),
+    withDatabaseFallback(prisma.galleryImage.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: 'asc' },
       take: 3
-    }),
-    prisma.heroImage.findMany({
+    }), [], "about gallery"),
+    withDatabaseFallback(prisma.heroImage.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: 'asc' },
       take: 3
-    }),
-    prisma.offer.findMany({
+    }), [], "about hero images"),
+    withDatabaseFallback(prisma.offer.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
       take: 1
-    })
+    }), [], "about offers")
   ]);
 
   // Use GalleryImage if available, fallback to HeroImage for the "A Glimpse of Our Store" section

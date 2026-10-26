@@ -12,6 +12,7 @@ import { Section, SectionHeader } from "@/components/ui/Section";
 import { PreOwnedSection } from "@/components/sections/PreOwned";
 import prisma from "@/lib/prisma";
 import { getStoreSettings, canSellUsedRefurbished, isWhatsAppEnabled } from "@/lib/settings";
+import { withDatabaseFallback } from "@/lib/database-fallback";
 
 export default async function Page() {
   const settings = await getStoreSettings();
@@ -23,10 +24,10 @@ export default async function Page() {
       </div>
     );
   }
-  const products = await prisma.product.findMany({
+  const products = await withDatabaseFallback(prisma.product.findMany({
     where: { type: { in: ['USED', 'REFURBISHED'] } },
     include: { brand: true, category: true, images: true }
-  });
+  }), [], "pre-owned products");
 
   const mappedProducts = products.map(p => ({
     ...p,
