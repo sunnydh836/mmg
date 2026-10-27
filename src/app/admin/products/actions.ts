@@ -39,7 +39,10 @@ function isAllowedProductImageUrl(value: string) {
     if (value.startsWith("/uploads/products/")) return true;
     try {
         const url = new URL(value);
-        return url.protocol === "https:" && url.hostname.endsWith(".public.blob.vercel-storage.com");
+        const endpointValue = process.env.IMAGEKIT_URL_ENDPOINT?.replace(/\/+$/, "");
+        if (!endpointValue) return false;
+        const endpoint = new URL(endpointValue);
+        return url.protocol === "https:" && url.origin === endpoint.origin && url.pathname.startsWith(`${endpoint.pathname}/`);
     } catch {
         return false;
     }
@@ -63,7 +66,7 @@ export async function deleteProduct(id: string) {
             where: { id },
         });
 
-        // Delete owned local or Supabase Storage files after removing the DB row.
+        // Delete owned local or ImageKit files after removing the DB row.
         for (const img of existingProduct.images) {
             await storage.deleteFile(img.imageUrl);
         }

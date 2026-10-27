@@ -29,7 +29,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## Environment Variables
 The following environment variables are required natively:
 * `DATABASE_URL`: The Supabase Postgres connection string, beginning with `postgresql://` or `postgres://` (not the Supabase project URL or an API key). The app uses Prisma to read and write its data there; a separate local PostgreSQL server is not needed.
-* `BLOB_READ_WRITE_TOKEN`: Vercel Blob read/write token used for persistent image uploads. Vercel adds it when you create and connect a Blob store to this project. Local development without this setting uses `public/uploads`.
+* `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT`: Server-only ImageKit credentials for persistent image uploads. Keep the private key secret and do not prefix it with `NEXT_PUBLIC_`. Local development without these settings uses `public/uploads`.
 * `JWT_SECRET`: A strong string used to sign admin session cookies.
 
 Use a Direct or Session pooler connection for Prisma schema changes. For Vercel, use the Supabase **Transaction pooler** connection string (port `6543`) in the `DATABASE_URL` environment variable, with `pgbouncer=true&connection_limit=1`. Prisma needs `pgbouncer=true` for transaction pooling; `connection_limit=1` is a good starting pool size for serverless functions.
@@ -54,10 +54,10 @@ This project can be deployed easily on Vercel or any Node.js hosting platform (V
 1. Connect your GitHub repository to Vercel.
 2. In the Vercel dashboard for your project, go to **Settings > Environment Variables**.
 3. Add `DATABASE_URL` pointing to a production Postgres (e.g. Supabase, Neon, RDS).
-4. In Vercel, create a **public Blob store** under **Storage** and connect it to this project. This adds `BLOB_READ_WRITE_TOKEN` to the project's environment automatically. Product images upload to Blob; Supabase Postgres continues to store their URLs.
+4. Add `IMAGEKIT_PRIVATE_KEY` and `IMAGEKIT_URL_ENDPOINT` from your ImageKit dashboard. Product images upload to ImageKit; Supabase Postgres continues to store their URLs.
 5. Add `JWT_SECRET` (generate a random 32-character string).
 6. Ensure the Build Command is `npm run build` and Install Command is `npm install`.
-7. Deploy. Vercel automatically detects Next.js. Production uploads are stored in Vercel Blob; local development without the Blob token uses `public/uploads`.
+7. Deploy. Vercel automatically detects Next.js. Production uploads are stored in ImageKit; local development without ImageKit credentials uses `public/uploads`.
 
 ### VPS / Traditional Deployment
 1. Clone the repository on your server.

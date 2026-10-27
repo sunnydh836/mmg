@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+const imageKitEndpointHost = process.env.IMAGEKIT_URL_ENDPOINT
+  ? new URL(process.env.IMAGEKIT_URL_ENDPOINT).hostname
+  : "ik.imagekit.io";
+
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
@@ -8,6 +12,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      { protocol: 'https', hostname: imageKitEndpointHost, pathname: '/**' },
       { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
       { protocol: 'https', hostname: 'image01.realme.net' },
       { protocol: 'https', hostname: 'image.oppo.com' },

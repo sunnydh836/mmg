@@ -12,8 +12,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@imagekit/nodejs": "^7.13.0",
     "@prisma/client": "^6.0.0",
-    "@vercel/blob": "^2.8.2",
     "bcryptjs": "^3.0.3",
     "duck-duck-scrape": "^2.2.7",
     "duckduckgo-images-api": "^1.0.5",
