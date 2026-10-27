@@ -1,5 +1,5 @@
 "use client";
-import { getWhatsAppUrl } from "@/lib/settings";
+import { getWhatsAppUrl } from "@/lib/settings-shared";
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { MessageSquare, Phone, MapPin } from "lucide-react";
 import { StoreSettings } from "@prisma/client";
-import { getWhatsAppUrl } from "@/lib/settings";
+import { getWhatsAppUrl } from "@/lib/settings-shared";
 
 export function AboutCTA({ settings }: { settings: StoreSettings | null }) {
     if (!settings) return null;

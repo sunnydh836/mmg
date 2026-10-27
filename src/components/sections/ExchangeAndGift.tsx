@@ -1,5 +1,5 @@
 "use client";
-import { getWhatsAppUrl, canExchangeOldPhones, areGiftsAvailable, StoreSettingsType } from "@/lib/settings";
+import { getWhatsAppUrl, canExchangeOldPhones, areGiftsAvailable, type StoreSettingsType } from "@/lib/settings-shared";
 
 import React from "react";
 import { motion } from "framer-motion";

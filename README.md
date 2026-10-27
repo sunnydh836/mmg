@@ -10,14 +10,13 @@ First, install dependencies:
 npm install
 ```
 
-Copy the `.env.example` file to `.env` and fill in your values.
-Ensure you have a PostgreSQL database actively running.
+Create a Supabase project, then copy `.env.example` to `.env` and fill in your values. Get the `DATABASE_URL` from the Supabase project's **Connect** dialog. Use the **Session pooler** connection string for local development if your network cannot reach Supabase's direct IPv6 endpoint.
 
 ```bash
 cp .env.example .env
 ```
 
-Apply database migrations and start the server:
+Create the Prisma tables in Supabase and start the server:
 
 ```bash
 npx prisma generate
@@ -29,8 +28,10 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Environment Variables
 The following environment variables are required natively:
-* `DATABASE_URL`: Your PostgreSQL connection string.
+* `DATABASE_URL`: The Supabase Postgres connection string, beginning with `postgresql://` or `postgres://` (not the Supabase project URL or an API key). The app uses Prisma to read and write its data there; a separate local PostgreSQL server is not needed.
 * `JWT_SECRET`: A strong string used to sign admin session cookies.
+
+Use a Direct or Session pooler connection for Prisma schema changes. For Vercel, use the Supabase **Transaction pooler** connection string (port `6543`) in the `DATABASE_URL` environment variable, with `pgbouncer=true&connection_limit=1`. Prisma needs `pgbouncer=true` for transaction pooling; `connection_limit=1` is a good starting pool size for serverless functions.
 
 ## Move an existing database to Supabase
 

@@ -1,5 +1,5 @@
 "use client";
-import { getWhatsAppUrl, isWhatsAppEnabled } from "@/lib/settings";
+import { getWhatsAppUrl, isWhatsAppEnabled, formatOpeningHours } from "@/lib/settings-shared";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,7 +7,6 @@ import { MapPin, Phone, MessageCircle, ChevronDown } from "lucide-react";
 import { Section, SectionHeader } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { staggerContainer, slideUp } from "@/lib/animations";
-import { formatOpeningHours } from "@/lib/settings";
 
 export const LocationAndFAQ = ({ faqs = [], settings }: { faqs?: { question: string; answer: string }[], settings: any }) => {
     const [openIndex, setOpenIndex] = useState<number | null>(0);

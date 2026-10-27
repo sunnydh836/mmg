@@ -3,12 +3,31 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { Plus, Package, Edit, Trash2 } from "lucide-react";
 import DeleteProductButton from "./DeleteProductButton";
+import { PaginationLinks } from "@/components/ui/PaginationLinks";
 
-export default async function AdminProductsPage() {
-    const products = await prisma.product.findMany({
-        include: { brand: true, category: true },
-        orderBy: { createdAt: 'desc' }
+const PAGE_SIZE = 20;
+
+export default async function AdminProductsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+    const params = await searchParams;
+    const parsedPage = Number.parseInt(params.page || "1", 10);
+    const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const records = await prisma.product.findMany({
+        select: {
+            id: true,
+            name: true,
+            slug: true,
+            type: true,
+            availability: true,
+            createdAt: true,
+            brand: { select: { name: true } },
+            category: { select: { name: true } },
+        },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE + 1,
     });
+    const hasNext = records.length > PAGE_SIZE;
+    const products = records.slice(0, PAGE_SIZE);
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -88,6 +107,7 @@ export default async function AdminProductsPage() {
                     </div>
                 )}
             </div>
+            <PaginationLinks page={page} hasNext={hasNext} basePath="/admin/products" />
         </div>
     );
 }

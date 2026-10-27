@@ -15,6 +15,7 @@ import { Metadata } from "next";
 
 import { PremiumErrorFallback } from "@/components/ui/PremiumErrorFallback";
 import { SectionErrorBoundary } from "@/components/ui/SectionErrorBoundary";
+import { productCardSelect, toProductCardProduct } from "@/lib/product-card-data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getStoreSettings();
@@ -87,29 +88,35 @@ async function BrandsBoundary() {
 
 async function ProductsBoundaries({ settings }: { settings: any }) {
   try {
-    const products = await prisma.product.findMany({
-      include: { brand: true, category: true, images: true }
+    const featuredQuery = prisma.product.findMany({
+      where: { featured: true },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: productCardSelect,
     });
-    const mappedProducts = products.map(p => ({
-      ...p,
-      brand: p.brand?.name || "Other",
-      category: p.category?.name || "Other",
-      images: p.images.map(img => img.imageUrl),
-      imagePlaceholderId: 1,
-      preOwnedCondition: p.type,
-      specifications: {},
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-    })) as unknown as import("@/types/product").Product[];
+    const preOwnedQuery = canSellUsedRefurbished(settings)
+      ? prisma.product.findMany({
+          where: { type: { in: ["USED", "REFURBISHED"] } },
+          orderBy: { createdAt: "desc" },
+          take: 4,
+          select: productCardSelect,
+        })
+      : null;
+    const [featuredRecords, preOwnedRecords] = await Promise.all([
+      featuredQuery,
+      preOwnedQuery || Promise.resolve([]),
+    ]);
+    const featuredProducts = featuredRecords.map(toProductCardProduct);
+    const preOwnedProducts = preOwnedRecords.map(toProductCardProduct);
 
     return (
       <>
         <SectionErrorBoundary fallback={<PremiumErrorFallback message="Featured products are temporarily unavailable." />}>
-          <FeaturedProductsSection products={mappedProducts.filter(p => p.featured)} whatsappNumber={settings.whatsapp} isWhatsAppEnabled={isWhatsAppEnabled(settings)} />
+          <FeaturedProductsSection products={featuredProducts} whatsappNumber={settings.whatsapp} isWhatsAppEnabled={isWhatsAppEnabled(settings)} />
         </SectionErrorBoundary>
         {canSellUsedRefurbished(settings) && (
           <SectionErrorBoundary fallback={<PremiumErrorFallback message="Pre-owned products are temporarily unavailable." />}>
-            <PreOwnedSection products={mappedProducts.filter(p => ["USED", "REFURBISHED"].includes(p.type))} whatsappNumber={settings.whatsapp} isWhatsAppEnabled={isWhatsAppEnabled(settings)} />
+            <PreOwnedSection products={preOwnedProducts} whatsappNumber={settings.whatsapp} isWhatsAppEnabled={isWhatsAppEnabled(settings)} />
           </SectionErrorBoundary>
         )}
       </>

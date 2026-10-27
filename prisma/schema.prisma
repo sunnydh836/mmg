@@ -64,6 +64,12 @@ model Product {
   brand    Brand          @relation(fields: [brandId], references: [id])
   category Category       @relation(fields: [categoryId], references: [id])
   images   ProductImage[]
+
+  @@index([createdAt])
+  @@index([brandId, createdAt])
+  @@index([categoryId, createdAt])
+  @@index([type, createdAt])
+  @@index([featured, createdAt])
 }
 
 model ProductImage {

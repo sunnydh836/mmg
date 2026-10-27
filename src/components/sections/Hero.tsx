@@ -1,5 +1,5 @@
 "use client";
-import { getWhatsAppUrl, isWhatsAppEnabled } from "@/lib/settings";
+import { getWhatsAppUrl, isWhatsAppEnabled } from "@/lib/settings-shared";
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";

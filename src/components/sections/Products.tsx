@@ -1,5 +1,5 @@
 "use client";
-import { getWhatsAppUrl } from "@/lib/settings";
+import { getWhatsAppUrl } from "@/lib/settings-shared";
 
 import React from "react";
 import { motion } from "framer-motion";

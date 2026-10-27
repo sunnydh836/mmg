@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Section, SectionHeader } from "@/components/ui/Section";
 import { slideUp, staggerContainer } from "@/lib/animations";
 import { StoreSettings } from "@prisma/client";
-import { formatOpeningHours } from "@/lib/settings";
+import { formatOpeningHours } from "@/lib/settings-shared";
 
 export function AboutInfo({ settings }: { settings: StoreSettings | null }) {
     if (!settings) return null;

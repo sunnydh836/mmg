@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "@/components/sections/Products";
 import { Product } from "@/types/product";
 
 const SORT_OPTIONS = ["Featured", "Name A-Z", "Newest"] as const;
 
-function ProductListContent({ products, brands, categories, whatsappNumber }: { products: Product[], brands: string[], categories: string[], whatsappNumber: string }) {
+function ProductListContent({ products, brands, categories, whatsappNumber, page, hasNext }: { products: Product[], brands: string[], categories: string[], whatsappNumber: string, page: number, hasNext: boolean }) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const currentSearchParams = searchParams.toString();
 
     // Read initial values from URL
     const [search, setSearch] = useState(searchParams.get("search") || "");
@@ -19,9 +20,11 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
     const [selectedAvailability, setSelectedAvailability] = useState(searchParams.get("availability") || "");
     const [selectedSort, setSelectedSort] = useState(searchParams.get("sort") || "Featured");
     const [isFeaturedOnly, setIsFeaturedOnly] = useState(searchParams.get("featured") === "true");
+    const [currentPage, setCurrentPage] = useState(page);
 
-    // Sync URL when filters change
+    // Keep filters and pagination in the URL so the server can query one page at a time.
     useEffect(() => {
+        const timer = setTimeout(() => {
         const params = new URLSearchParams();
         if (search) params.set("search", search);
         if (selectedBrand) params.set("brand", selectedBrand);
@@ -30,40 +33,14 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
         if (selectedAvailability) params.set("availability", selectedAvailability);
         if (selectedSort && selectedSort !== "Featured") params.set("sort", selectedSort);
         if (isFeaturedOnly) params.set("featured", "true");
+        if (currentPage > 1) params.set("page", String(currentPage));
 
         const newUrl = params.toString() ? `/products?${params.toString()}` : "/products";
-        // prevent pushing the exact same URL to history repeatedly, only push if changed
-        router.replace(newUrl, { scroll: false });
-    }, [search, selectedBrand, selectedCategory, selectedType, selectedAvailability, selectedSort, isFeaturedOnly, router]);
-
-
-    const filteredProducts = useMemo(() => {
-        let result = [...products];
-
-        if (search) {
-            const query = search.toLowerCase();
-            result = result.filter(p => p.name.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query));
-        }
-        if (selectedBrand) result = result.filter(p => p.brand === selectedBrand);
-        if (selectedCategory) result = result.filter(p => p.category === selectedCategory);
-        if (selectedType) result = result.filter(p => p.type === selectedType);
-        if (selectedAvailability) result = result.filter(p => p.availability === selectedAvailability);
-        if (isFeaturedOnly) result = result.filter(p => p.featured);
-
-        // Sorting
-        result.sort((a, b) => {
-            if (selectedSort === "Name A-Z") return a.name.localeCompare(b.name);
-            if (selectedSort === "Newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-            // Featured sort (default fallback): Show featured first
-            if (selectedSort === "Featured") {
-                if (a.featured && !b.featured) return -1;
-                if (!a.featured && b.featured) return 1;
-            }
-            return 0;
-        });
-
-        return result;
-    }, [search, selectedBrand, selectedCategory, selectedType, selectedAvailability, selectedSort, isFeaturedOnly]);
+        const currentUrl = currentSearchParams ? `/products?${currentSearchParams}` : "/products";
+        if (newUrl !== currentUrl) router.replace(newUrl, { scroll: false });
+        }, 250);
+        return () => clearTimeout(timer);
+    }, [search, selectedBrand, selectedCategory, selectedType, selectedAvailability, selectedSort, isFeaturedOnly, currentPage, router, currentSearchParams]);
 
     const [isSearchOpen, setIsSearchOpen] = useState(Boolean(searchParams.get("search")));
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -90,12 +67,12 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
                                     type="text"
                                     placeholder="Search devices..."
                                     value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
+                                    onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
                                     className="w-full bg-black border border-white/10 rounded-lg pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-accent transition-colors"
                                 />
                                 {search && (
                                     <button
-                                        onClick={() => setSearch("")}
+                                        onClick={() => { setSearch(""); setCurrentPage(1); }}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
@@ -121,7 +98,7 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
                 <div className={`flex flex-col sm:flex-row flex-wrap items-center sm:justify-center xl:justify-end gap-3 md:gap-4 w-full xl:flex-1 transition-all duration-500 xl:max-h-none xl:opacity-100 xl:mt-0 xl:pointer-events-auto overflow-hidden ${isFiltersOpen ? 'max-h-[800px] opacity-100 mt-4 pointer-events-auto' : 'max-h-0 opacity-0 mt-0 pointer-events-none'}`}>
                     <select
                         value={selectedBrand}
-                        onChange={(e) => setSelectedBrand(e.target.value)}
+                        onChange={(e) => { setSelectedBrand(e.target.value); setCurrentPage(1); }}
                         className="bg-black border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-accent transition-colors w-full sm:w-auto min-w-[140px]"
                     >
                         <option value="">All Brands</option>
@@ -130,7 +107,7 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
 
                     <select
                         value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
                         className="bg-black border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-accent transition-colors w-full sm:w-auto min-w-[150px]"
                     >
                         <option value="">All Categories</option>
@@ -139,7 +116,7 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
 
                     <select
                         value={selectedType}
-                        onChange={(e) => setSelectedType(e.target.value)}
+                        onChange={(e) => { setSelectedType(e.target.value); setCurrentPage(1); }}
                         className="bg-black border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-accent transition-colors w-full sm:w-auto min-w-[130px]"
                     >
                         <option value="">All Types</option>
@@ -150,7 +127,7 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
 
                     <select
                         value={selectedAvailability}
-                        onChange={(e) => setSelectedAvailability(e.target.value)}
+                        onChange={(e) => { setSelectedAvailability(e.target.value); setCurrentPage(1); }}
                         className="bg-black border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-accent transition-colors w-full sm:w-auto min-w-[140px]"
                     >
                         <option value="">Any Availability</option>
@@ -164,7 +141,7 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
                             type="checkbox"
                             id="featured"
                             checked={isFeaturedOnly}
-                            onChange={(e) => setIsFeaturedOnly(e.target.checked)}
+                            onChange={(e) => { setIsFeaturedOnly(e.target.checked); setCurrentPage(1); }}
                             className="w-4 h-4 rounded bg-black border-white/10 text-accent focus:ring-accent focus:ring-offset-gray-900"
                         />
                         <label htmlFor="featured" className="text-sm text-gray-300 cursor-pointer select-none">Featured Only</label>
@@ -173,7 +150,7 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
                     {(search || selectedBrand || selectedCategory || selectedType || selectedAvailability || isFeaturedOnly) && (
                         <button
                             onClick={() => {
-                                setSearch(""); setSelectedBrand(""); setSelectedCategory(""); setSelectedType("");
+                                setSearch(""); setSelectedBrand(""); setSelectedCategory(""); setSelectedType(""); setCurrentPage(1);
                                 setSelectedAvailability(""); setSelectedSort("Featured"); setIsFeaturedOnly(false); setIsSearchOpen(false); setIsFiltersOpen(false);
                             }}
                             className="text-xs font-semibold uppercase tracking-wider text-accent border border-accent/30 px-3 py-2 rounded-lg hover:bg-accent/10 transition-colors whitespace-nowrap w-full sm:w-auto"
@@ -188,14 +165,14 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
             <div className="flex-1 flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                     <div className="text-sm text-gray-400 font-medium">
-                        Showing <span className="text-white">{filteredProducts.length}</span> devices
+                        Showing <span className="text-white">{products.length}</span> devices on page {page}
                     </div>
 
                     <div className="flex items-center gap-2">
                         <label className="text-xs text-gray-400 uppercase tracking-widest font-bold hidden sm:block">Sort By</label>
                         <select
                             value={selectedSort}
-                            onChange={(e) => setSelectedSort(e.target.value)}
+                            onChange={(e) => { setSelectedSort(e.target.value); setCurrentPage(1); }}
                             className="bg-black border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-accent transition-colors"
                         >
                             {SORT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -203,9 +180,9 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
                     </div>
                 </div>
 
-                {filteredProducts.length > 0 ? (
+                {products.length > 0 ? (
                     <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
-                        {filteredProducts.map((product) => (
+                        {products.map((product) => (
                             <ProductCard key={product.id} product={product} whatsappNumber={whatsappNumber} isWhatsAppEnabled={true} />
                         ))}
                     </div>
@@ -216,7 +193,7 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
                         <button
                             onClick={() => {
                                 setSearch(""); setSelectedBrand(""); setSelectedCategory(""); setSelectedType("");
-                                setSelectedAvailability(""); setSelectedSort("Featured"); setIsFeaturedOnly(false);
+                                setSelectedAvailability(""); setSelectedSort("Featured"); setIsFeaturedOnly(false); setCurrentPage(1);
                             }}
                             className="mt-6 text-sm font-semibold tracking-wide text-white bg-accent/20 border border-accent hover:bg-accent px-6 py-2 rounded-xl transition-all"
                         >
@@ -224,15 +201,22 @@ function ProductListContent({ products, brands, categories, whatsappNumber }: { 
                         </button>
                     </div>
                 )}
+                {(page > 1 || hasNext) && (
+                    <nav aria-label="Product pages" className="flex items-center justify-center gap-4 mt-10">
+                        <button type="button" onClick={() => setCurrentPage(page - 1)} disabled={page <= 1} className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/10">Previous</button>
+                        <span className="text-sm text-gray-400">Page {page}</span>
+                        <button type="button" onClick={() => setCurrentPage(page + 1)} disabled={!hasNext} className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/10">Next</button>
+                    </nav>
+                )}
             </div>
         </div>
     );
 }
 
-export function ClientProductList({ products, brands, categories, whatsappNumber }: { products: Product[], brands: string[], categories: string[], whatsappNumber: string }) {
+export function ClientProductList({ products, brands, categories, whatsappNumber, page, hasNext }: { products: Product[], brands: string[], categories: string[], whatsappNumber: string, page: number, hasNext: boolean }) {
     return (
         <Suspense fallback={<div className="flex justify-center items-center py-32"><div className="w-8 h-8 rounded-full border-b-2 border-accent animate-spin"></div></div>}>
-            <ProductListContent products={products} brands={brands} categories={categories} whatsappNumber={whatsappNumber} />
+            <ProductListContent products={products} brands={brands} categories={categories} whatsappNumber={whatsappNumber} page={page} hasNext={hasNext} />
         </Suspense>
     );
 }

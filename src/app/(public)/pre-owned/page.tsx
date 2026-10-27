@@ -13,8 +13,12 @@ import { PreOwnedSection } from "@/components/sections/PreOwned";
 import prisma from "@/lib/prisma";
 import { getStoreSettings, canSellUsedRefurbished, isWhatsAppEnabled } from "@/lib/settings";
 import { withDatabaseFallback } from "@/lib/database-fallback";
+import { PaginationLinks } from "@/components/ui/PaginationLinks";
+import { productCardSelect, toProductCardProduct } from "@/lib/product-card-data";
 
-export default async function Page() {
+const PAGE_SIZE = 12;
+
+export default async function Page({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const settings = await getStoreSettings();
   if (!canSellUsedRefurbished(settings)) {
     return (
@@ -24,22 +28,18 @@ export default async function Page() {
       </div>
     );
   }
-  const products = await withDatabaseFallback(prisma.product.findMany({
+  const params = await searchParams;
+  const parsedPage = Number.parseInt(params.page || "1", 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const records = await withDatabaseFallback(prisma.product.findMany({
     where: { type: { in: ['USED', 'REFURBISHED'] } },
-    include: { brand: true, category: true, images: true }
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE + 1,
+    select: productCardSelect,
   }), [], "pre-owned products");
-
-  const mappedProducts = products.map(p => ({
-    ...p,
-    brand: p.brand?.name || "Other",
-    category: p.category?.name || "Other",
-    images: p.images.map(img => img.imageUrl),
-    imagePlaceholderId: 1,
-    preOwnedCondition: p.type,
-    specifications: {},
-    createdAt: p.createdAt.toISOString(),
-    updatedAt: p.updatedAt.toISOString(),
-  })) as unknown as import("@/types/product").Product[];
+  const hasNext = records.length > PAGE_SIZE;
+  const products = records.slice(0, PAGE_SIZE).map(toProductCardProduct);
 
   return (
     <div className="flex flex-col w-full pb-12">
@@ -58,7 +58,8 @@ export default async function Page() {
           </div>
         </div>
       </Section>
-      <PreOwnedSection products={mappedProducts} whatsappNumber={settings.whatsapp} isWhatsAppEnabled={isWhatsAppEnabled(settings)} />
+      <PreOwnedSection products={products} whatsappNumber={settings.whatsapp} isWhatsAppEnabled={isWhatsAppEnabled(settings)} />
+      <PaginationLinks page={page} hasNext={hasNext} basePath="/pre-owned" />
     </div>
   );
 }
