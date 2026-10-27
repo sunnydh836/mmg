@@ -83,7 +83,12 @@ export class ImageKitStorageProvider implements StorageProvider {
     async deleteFile(fileUrl: string): Promise<{ success: boolean; error?: string }> {
         try {
             const { urlEndpoint } = this.getConfig();
-            const target = new URL(fileUrl);
+            let target: URL;
+            try {
+                target = new URL(fileUrl);
+            } catch {
+                return { success: true };
+            }
             const endpoint = new URL(urlEndpoint);
             if (target.origin !== endpoint.origin || !target.pathname.startsWith(`${endpoint.pathname}/`)) {
                 return { success: true };

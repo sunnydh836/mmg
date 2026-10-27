@@ -66,14 +66,15 @@ export async function deleteProduct(id: string) {
             where: { id },
         });
 
-        // Delete owned local or ImageKit files after removing the DB row.
-        for (const img of existingProduct.images) {
-            await storage.deleteFile(img.imageUrl);
-        }
+        // Keep the database deletion successful even if external image cleanup fails.
+        const cleanupResults = await Promise.all(existingProduct.images.map((img) => storage.deleteFile(img.imageUrl)));
+        const imageCleanupWarning = cleanupResults.some((result) => !result.success)
+            ? "The product was deleted, but one or more image files could not be removed from ImageKit."
+            : undefined;
 
         revalidatePath("/admin/products");
         revalidatePath("/products");
-        return { success: true };
+        return { success: true, imageCleanupWarning };
     } catch (error) {
         console.error("Failed to delete product", error);
         return { error: error instanceof Error ? error.message : "Failed to delete product" };
