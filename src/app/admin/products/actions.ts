@@ -4,6 +4,36 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { storage } from "@/lib/storage";
 
+function productSlugBase(name: string) {
+    return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") || "product";
+}
+
+async function getAvailableProductSlug(name: string, currentProductId?: string) {
+    const base = productSlugBase(name);
+    let candidate = base;
+    let suffix = 2;
+
+    while (await prisma.product.findFirst({
+        where: {
+            slug: candidate,
+            ...(currentProductId ? { id: { not: currentProductId } } : {}),
+        },
+        select: { id: true },
+    })) {
+        candidate = `${base}-${suffix++}`;
+    }
+
+    return candidate;
+}
+
+function isSlugConflict(error: unknown) {
+    if (!error || typeof error !== "object" || !("code" in error) || error.code !== "P2002") return false;
+    if (!("meta" in error) || !error.meta || typeof error.meta !== "object" || !("target" in error.meta)) return false;
+
+    const target = error.meta.target;
+    return Array.isArray(target) ? target.includes("slug") : typeof target === "string" && target.includes("slug");
+}
+
 export async function deleteProduct(id: string) {
     try {
         // Fetch existing product to safely capture image URLs before deletion
@@ -40,8 +70,8 @@ export async function deleteProduct(id: string) {
 
 export async function createProduct(formData: FormData) {
     try {
-        const name = formData.get("name") as string;
-        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+        const name = String(formData.get("name") || "").trim();
+        if (!name) throw new Error("Product name is required");
         const isDemo = formData.get("isDemo") === "true";
 
         const newImages = formData.getAll("newImages") as File[];
@@ -92,25 +122,33 @@ export async function createProduct(formData: FormData) {
             }
         }
 
-        await prisma.product.create({
-            data: {
-                name,
-                slug,
-                brandId: formData.get("brandId") as string,
-                categoryId: formData.get("categoryId") as string,
-                type: formData.get("type") as string || "NEW",
-                price,
-                mrp,
-                shortDescription: formData.get("shortDescription") as string,
-                description: formData.get("description") as string,
-                availability: formData.get("availability") as string || "In Stock",
-                featured: formData.get("featured") === "true",
-                isDemo: isDemo,
-                images: {
-                    create: productImagesData
-                }
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const slug = await getAvailableProductSlug(name);
+            try {
+                await prisma.product.create({
+                    data: {
+                        name,
+                        slug,
+                        brandId: formData.get("brandId") as string,
+                        categoryId: formData.get("categoryId") as string,
+                        type: formData.get("type") as string || "NEW",
+                        price,
+                        mrp,
+                        shortDescription: formData.get("shortDescription") as string,
+                        description: formData.get("description") as string,
+                        availability: formData.get("availability") as string || "In Stock",
+                        featured: formData.get("featured") === "true",
+                        isDemo: isDemo,
+                        images: {
+                            create: productImagesData
+                        }
+                    }
+                });
+                break;
+            } catch (error) {
+                if (!isSlugConflict(error) || attempt === 4) throw error;
             }
-        });
+        }
 
         revalidatePath("/admin/products");
         revalidatePath("/products");
@@ -123,8 +161,8 @@ export async function createProduct(formData: FormData) {
 
 export async function updateProduct(id: string, formData: FormData) {
     try {
-        const name = formData.get("name") as string;
-        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+        const name = String(formData.get("name") || "").trim();
+        if (!name) throw new Error("Product name is required");
         const isDemo = formData.get("isDemo") === "true";
 
         const priceType = formData.get("priceType") as string;
@@ -145,23 +183,31 @@ export async function updateProduct(id: string, formData: FormData) {
             }
         }
 
-        await prisma.product.update({
-            where: { id },
-            data: {
-                name,
-                slug,
-                brandId: formData.get("brandId") as string,
-                categoryId: formData.get("categoryId") as string,
-                type: formData.get("type") as string || "NEW",
-                price,
-                mrp,
-                shortDescription: formData.get("shortDescription") as string,
-                description: formData.get("description") as string,
-                availability: formData.get("availability") as string || "In Stock",
-                featured: formData.get("featured") === "true",
-                isDemo: isDemo,
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const slug = await getAvailableProductSlug(name, id);
+            try {
+                await prisma.product.update({
+                    where: { id },
+                    data: {
+                        name,
+                        slug,
+                        brandId: formData.get("brandId") as string,
+                        categoryId: formData.get("categoryId") as string,
+                        type: formData.get("type") as string || "NEW",
+                        price,
+                        mrp,
+                        shortDescription: formData.get("shortDescription") as string,
+                        description: formData.get("description") as string,
+                        availability: formData.get("availability") as string || "In Stock",
+                        featured: formData.get("featured") === "true",
+                        isDemo: isDemo,
+                    }
+                });
+                break;
+            } catch (error) {
+                if (!isSlugConflict(error) || attempt === 4) throw error;
             }
-        });
+        }
 
         const existingProduct = await prisma.product.findUnique({
             where: { id },
