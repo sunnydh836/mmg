@@ -52,11 +52,9 @@ export async function deleteProduct(id: string) {
             where: { id },
         });
 
-        // Safely delete physical uploaded files only
+        // Delete owned local or Supabase Storage files after removing the DB row.
         for (const img of existingProduct.images) {
-            if (img.imageUrl.startsWith('/uploads/products/')) {
-                await storage.deleteFile(img.imageUrl);
-            }
+            await storage.deleteFile(img.imageUrl);
         }
 
         revalidatePath("/admin/products");
@@ -89,12 +87,8 @@ export async function createProduct(formData: FormData) {
                 if (info.type === 'new') {
                     const file = newImages[fileIndex++];
                     const { url, error } = await storage.uploadFile(file);
-                    if (!error && url) {
-                        productImagesData.push({
-                            imageUrl: url,
-                            sortOrder: i,
-                        });
-                    }
+                    if (error || !url) throw new Error(error || "Product image upload failed");
+                    productImagesData.push({ imageUrl: url, sortOrder: i });
                 }
             }
         } else if (isDemo) {
@@ -229,15 +223,10 @@ export async function updateProduct(id: string, formData: FormData) {
             if (info.type === 'new') {
                 const file = newImages[fileIndex++];
                 const { url, error } = await storage.uploadFile(file);
-                if (!error && url) {
-                    await prisma.productImage.create({
-                        data: {
-                            productId: id,
-                            imageUrl: url,
-                            sortOrder: i
-                        }
-                    });
-                }
+                if (error || !url) throw new Error(error || "Product image upload failed");
+                await prisma.productImage.create({
+                    data: { productId: id, imageUrl: url, sortOrder: i }
+                });
             } else if (info.type === 'existing' && info.id) {
                 existingImagesToKeep.add(info.id);
                 // Update sortOrder if changed

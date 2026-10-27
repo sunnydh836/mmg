@@ -29,6 +29,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## Environment Variables
 The following environment variables are required natively:
 * `DATABASE_URL`: The Supabase Postgres connection string, beginning with `postgresql://` or `postgres://` (not the Supabase project URL or an API key). The app uses Prisma to read and write its data there; a separate local PostgreSQL server is not needed.
+* `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_STORAGE_BUCKET`: Server-only settings for image uploads. Create the bucket named `product-images` as a **public** bucket in Supabase Storage. Keep `SUPABASE_SECRET_KEY` private and do not prefix it with `NEXT_PUBLIC_`.
 * `JWT_SECRET`: A strong string used to sign admin session cookies.
 
 Use a Direct or Session pooler connection for Prisma schema changes. For Vercel, use the Supabase **Transaction pooler** connection string (port `6543`) in the `DATABASE_URL` environment variable, with `pgbouncer=true&connection_limit=1`. Prisma needs `pgbouncer=true` for transaction pooling; `connection_limit=1` is a good starting pool size for serverless functions.
@@ -53,10 +54,10 @@ This project can be deployed easily on Vercel or any Node.js hosting platform (V
 1. Connect your GitHub repository to Vercel.
 2. In the Vercel dashboard for your project, go to **Settings > Environment Variables**.
 3. Add `DATABASE_URL` pointing to a production Postgres (e.g. Supabase, Neon, RDS).
-4. Add `JWT_SECRET` (generate a random 32-character string).
-5. Ensure the Build Command is `npm run build` and Install Command is `npm install`.
-6. Deploy. Vercel automatically detects Next.js.
-7. Note: For local disk storage of images, a host like Vercel with ephemeral storage will NOT persist image uploads. You will need to migrate `src/lib/storage.ts` to S3 or a similar object store for serverless hosting. If deploying on a VPS, local disk storage will persist normally in `public/uploads`.
+4. Add `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and `SUPABASE_STORAGE_BUCKET` for persistent image storage. The bucket must exist and be public for product images to display.
+5. Add `JWT_SECRET` (generate a random 32-character string).
+6. Ensure the Build Command is `npm run build` and Install Command is `npm install`.
+7. Deploy. Vercel automatically detects Next.js. Production uploads are stored in Supabase Storage; local development without these settings uses `public/uploads`.
 
 ### VPS / Traditional Deployment
 1. Clone the repository on your server.
