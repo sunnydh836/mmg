@@ -1,9 +1,5 @@
 import type { NextConfig } from "next";
 
-const supabaseImageHost = process.env.SUPABASE_URL
-  ? new URL(process.env.SUPABASE_URL).hostname
-  : undefined;
-
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
@@ -12,9 +8,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      ...(supabaseImageHost
-        ? [{ protocol: "https" as const, hostname: supabaseImageHost, pathname: "/storage/v1/object/public/**" }]
-        : []),
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
       { protocol: 'https', hostname: 'image01.realme.net' },
       { protocol: 'https', hostname: 'image.oppo.com' },
       { protocol: 'https', hostname: 'i02.appmifile.com' },

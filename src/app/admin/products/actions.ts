@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { storage } from "@/lib/storage";
+import { getSession } from "@/lib/auth";
 
 function productSlugBase(name: string) {
     return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") || "product";
@@ -32,6 +33,16 @@ function isSlugConflict(error: unknown) {
 
     const target = error.meta.target;
     return Array.isArray(target) ? target.includes("slug") : typeof target === "string" && target.includes("slug");
+}
+
+function isAllowedProductImageUrl(value: string) {
+    if (value.startsWith("/uploads/products/")) return true;
+    try {
+        const url = new URL(value);
+        return url.protocol === "https:" && url.hostname.endsWith(".public.blob.vercel-storage.com");
+    } catch {
+        return false;
+    }
 }
 
 export async function deleteProduct(id: string) {
@@ -66,32 +77,46 @@ export async function deleteProduct(id: string) {
     }
 }
 
+export async function uploadProductImage(formData: FormData) {
+    try {
+        const session = await getSession();
+        if (!session?.userId) return { error: "Unauthorized" };
+
+        const file = formData.get("image");
+        if (!(file instanceof File) || file.size === 0) return { error: "Choose an image to upload" };
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+            return { error: "Only JPG, PNG, and WEBP images are allowed" };
+        }
+        if (file.size > 2 * 1024 * 1024) return { error: "Image must be 2 MB or smaller after processing" };
+
+        return await storage.uploadFile(file);
+    } catch (error) {
+        console.error("Failed to upload product image", error);
+        return { error: error instanceof Error ? error.message : "Product image upload failed" };
+    }
+}
+
 export async function createProduct(formData: FormData) {
     try {
         const name = String(formData.get("name") || "").trim();
         if (!name) throw new Error("Product name is required");
         const isDemo = formData.get("isDemo") === "true";
 
-        const newImages = formData.getAll("newImages") as File[];
         const imageCount = parseInt(formData.get("imageCount") as string || "0");
-        const imageInfos: { type: string; id?: string }[] = [];
+        const imageInfos: { type: string; id?: string; url?: string }[] = [];
         for (let i = 0; i < imageCount; i++) {
             imageInfos.push(JSON.parse(formData.get(`imageInfo_${i}`) as string));
         }
 
         let productImagesData: { imageUrl: string; sortOrder: number }[] = [];
-        if (newImages.length > 0) {
-            let fileIndex = 0;
-            for (let i = 0; i < imageInfos.length; i++) {
-                const info = imageInfos[i];
-                if (info.type === 'new') {
-                    const file = newImages[fileIndex++];
-                    const { url, error } = await storage.uploadFile(file);
-                    if (error || !url) throw new Error(error || "Product image upload failed");
-                    productImagesData.push({ imageUrl: url, sortOrder: i });
-                }
+        for (let i = 0; i < imageInfos.length; i++) {
+            const info = imageInfos[i];
+            if (info.type === 'new') {
+                if (!info.url || !isAllowedProductImageUrl(info.url)) throw new Error("Upload a valid product image");
+                productImagesData.push({ imageUrl: info.url, sortOrder: i });
             }
-        } else if (isDemo) {
+        }
+        if (productImagesData.length === 0 && isDemo) {
             productImagesData.push({
                 imageUrl: `https://via.placeholder.com/800x800?text=${encodeURIComponent(name || 'Demo Product')}`,
                 sortOrder: 0
@@ -208,24 +233,20 @@ export async function updateProduct(id: string, formData: FormData) {
             include: { images: true }
         });
 
-        const newImages = formData.getAll("newImages") as File[];
         const imageCount = parseInt(formData.get("imageCount") as string || "0");
-        const imageInfos: { type: string; id?: string }[] = [];
+        const imageInfos: { type: string; id?: string; url?: string }[] = [];
         for (let i = 0; i < imageCount; i++) {
             imageInfos.push(JSON.parse(formData.get(`imageInfo_${i}`) as string));
         }
 
         const existingImagesToKeep = new Set<string>();
-        let fileIndex = 0;
 
         for (let i = 0; i < imageInfos.length; i++) {
             const info = imageInfos[i];
             if (info.type === 'new') {
-                const file = newImages[fileIndex++];
-                const { url, error } = await storage.uploadFile(file);
-                if (error || !url) throw new Error(error || "Product image upload failed");
+                if (!info.url || !isAllowedProductImageUrl(info.url)) throw new Error("Upload a valid product image");
                 await prisma.productImage.create({
-                    data: { productId: id, imageUrl: url, sortOrder: i }
+                    data: { productId: id, imageUrl: info.url, sortOrder: i }
                 });
             } else if (info.type === 'existing' && info.id) {
                 existingImagesToKeep.add(info.id);
@@ -245,7 +266,7 @@ export async function updateProduct(id: string, formData: FormData) {
             }
         }
 
-        if (existingImagesToKeep.size === 0 && newImages.length === 0 && isDemo) {
+        if (existingImagesToKeep.size === 0 && !imageInfos.some((image) => image.type === 'new') && isDemo) {
             await prisma.productImage.create({
                 data: {
                     productId: id,

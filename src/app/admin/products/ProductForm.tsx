@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Loader2, ArrowLeft } from "lucide-react";
-import { createProduct, updateProduct } from "./actions";
+import { createProduct, updateProduct, uploadProductImage } from "./actions";
 import Link from "next/link";
 import ImageUploadArea, { ImageState } from "./components/ImageUploadArea";
 
@@ -39,11 +39,24 @@ export default function ProductForm({ initialData, brands, categories, isEdit }:
 
         const formData = new FormData(e.currentTarget);
 
-        // Append dynamic images data
+        // Upload each image separately to stay below Vercel Function request limits.
+        for (const img of images) {
+            if (img.type !== "new" || !img.file || img.url.startsWith("/") || img.url.startsWith("https://")) continue;
+            const uploadData = new FormData();
+            uploadData.set("image", img.file);
+            const uploaded = await uploadProductImage(uploadData);
+            if (uploaded.error || !uploaded.url) {
+                setError(uploaded.error || "Product image upload failed");
+                setLoading(false);
+                return;
+            }
+            img.url = uploaded.url;
+        }
+
+        // Append image metadata after new files have been persisted.
         images.forEach((img, index) => {
             if (img.type === "new" && img.file) {
-                formData.append("newImages", img.file);
-                formData.append(`imageInfo_${index}`, JSON.stringify({ type: "new", filename: img.file.name, isPrimary: index === 0 }));
+                formData.append(`imageInfo_${index}`, JSON.stringify({ type: "new", url: img.url, isPrimary: index === 0 }));
             } else if (img.type === "existing") {
                 formData.append(`imageInfo_${index}`, JSON.stringify({ type: "existing", id: img.id, isPrimary: index === 0 }));
             }
