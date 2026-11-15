@@ -14,13 +14,25 @@ import { AboutSocials } from "@/components/sections/about/about-socials";
 
 import { getStoreSettings } from "@/lib/settings";
 import { withDatabaseFallback } from "@/lib/database-fallback";
+import { buildMetadata } from "@/lib/seo";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getStoreSettings();
-  return {
-    title: `${settings.displayName || settings.businessName} | About Us`,
-    description: `Learn more about ${settings.businessName} offering new and pre-owned phones, mobile repairing, accessories, old phone purchase and exchange.`
-  };
+  const brandName = settings.displayName || settings.businessName;
+  const fullName = settings.businessName;
+
+  return buildMetadata({
+    title: `About ${brandName} | Trusted Mobile Shop in Partapur, Meerut`,
+    description: `Learn more about ${fullName}. Trusted destination for smartphones, express mobile repairing, phone exchange, and genuine accessories in Partapur, Meerut.`,
+    path: "/about",
+    keywords: [
+      `About ${brandName}`,
+      "Mobile shop Partapur Meerut",
+      "Phone gallery Meerut",
+      "Mobile repairing shop Gagol Road",
+    ],
+  });
 }
 
 export const dynamic = "force-dynamic";
@@ -56,6 +68,9 @@ export default async function AboutPage() {
 
   return (
     <div className="flex flex-col w-full bg-background min-h-screen">
+      <div className="container mx-auto px-6 pt-24 max-w-7xl">
+        <Breadcrumbs items={[{ name: "About Us", path: "/about" }]} />
+      </div>
       <AboutHero settings={settings} />
       <AboutIntro settings={settings} />
       <AboutServices services={services} />

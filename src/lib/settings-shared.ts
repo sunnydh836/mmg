@@ -2,7 +2,7 @@
 export const defaultSettings = {
     businessName: "Mahadev Mobile Gallery & Repairing",
     displayName: "Mahadev Mobile Gallery",
-    tagline: "Mobiles â€¢ Accessories â€¢ Repairing",
+    tagline: "Mobiles • Accessories • Repairing",
     phone: "7942699103",
     whatsapp: "7942699103",
     address: "WJ8W+6G8, Gagol Rd, Sector 2, MDA, Aminagar Urf Bhurbaral, Meerut, Uttar Pradesh 250103",

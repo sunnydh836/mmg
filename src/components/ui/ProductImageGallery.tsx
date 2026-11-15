@@ -25,6 +25,7 @@ export function ProductImageGallery({
                     src={images?.[activeIndex]}
                     alt={`${name} - Image ${activeIndex + 1}`}
                     placeholderId={placeholderId}
+                    priority={activeIndex === 0}
                 />
 
                 <div className="absolute top-6 right-6 flex flex-col gap-2 z-10">

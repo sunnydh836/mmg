@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
-import { Section, SectionHeader } from "@/components/ui/Section";
+import { Section } from "@/components/ui/Section";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { ClientProductList } from "@/components/sections/ClientProductList";
 import prisma from "@/lib/prisma";
 import { getStoreSettings } from "@/lib/settings";
 import { withDatabaseFallback } from "@/lib/database-fallback";
 import { productCardSelect, toProductCardProduct } from "@/lib/product-card-data";
+import { buildMetadata } from "@/lib/seo";
 
 const PAGE_SIZE = 12;
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -16,10 +18,22 @@ function firstParam(value: string | string[] | undefined) {
 
 export async function generateMetadata(): Promise<Metadata> {
     const settings = await getStoreSettings();
-    return {
-        title: `${settings.displayName || settings.businessName} | Mobile Collection`,
-        description: `Explore the latest smartphones and mobile accessories at ${settings.displayName || settings.businessName} in Partapur, Meerut.`,
-    };
+    const brandName = settings.displayName || settings.businessName;
+
+    return buildMetadata({
+        title: `Smartphones & Mobile Collection | ${brandName} Partapur, Meerut`,
+        description: `Explore new, certified pre-owned, and refurbished smartphones in Partapur, Meerut at ${brandName}. iPhone, Samsung, OnePlus, Realme, Vivo, Oppo at genuine prices.`,
+        path: "/products",
+        keywords: [
+            "Smartphones in Meerut",
+            "Mobile shop Partapur Meerut",
+            "iPhone shop Partapur",
+            "Samsung phones Meerut",
+            "OnePlus mobile Partapur",
+            "Pre-owned smartphones Meerut",
+            "Refurbished phones Meerut",
+        ],
+    });
 }
 
 export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -76,11 +90,20 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
     const products = records.slice(0, PAGE_SIZE).map(toProductCardProduct);
 
     return (
-        <Section>
-            <SectionHeader
-                title="Our Collection"
-                subtitle="Explore all available smartphones and devices."
-            />
+        <Section className="pt-24 pb-16">
+            <div className="mb-6">
+                <Breadcrumbs items={[{ name: "Products", path: "/products" }]} />
+            </div>
+
+            <div className="mb-10 text-center max-w-3xl mx-auto">
+                <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4">
+                    Our Mobile Collection
+                </h1>
+                <p className="text-gray-400 text-base md:text-lg leading-relaxed">
+                    Explore genuine new, pre-owned, and refurbished smartphones at {settings.displayName || settings.businessName} in Partapur, Meerut. In-store inspection, best exchange value, and fast warranty support.
+                </p>
+            </div>
+
             <ClientProductList
                 key={JSON.stringify(params)}
                 products={products}

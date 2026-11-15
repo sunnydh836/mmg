@@ -33,9 +33,11 @@ export const ProductCard = ({ product, whatsappNumber, isWhatsAppEnabled }: { pr
                             {product.type}
                         </div>
                     )}
-                    <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold text-white border border-white/10 tracking-widest shadow-lg uppercase self-end">
-                        DEMO
-                    </div>
+                    {product.isDemo && (
+                        <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold text-white border border-white/10 tracking-widest shadow-lg uppercase self-end">
+                            DEMO
+                        </div>
+                    )}
                 </div>
             </Link>
 
