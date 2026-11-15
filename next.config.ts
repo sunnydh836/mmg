@@ -54,6 +54,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/about/sitemap.xml',
+        destination: '/sitemap.xml',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
