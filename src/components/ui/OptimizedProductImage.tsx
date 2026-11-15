@@ -6,12 +6,14 @@ export function OptimizedProductImage({
     src,
     alt,
     placeholderId,
-    className = ""
+    className = "",
+    priority = false,
 }: {
-    src?: string,
-    alt: string,
-    placeholderId: number,
-    className?: string
+    src?: string;
+    alt: string;
+    placeholderId: number;
+    className?: string;
+    priority?: boolean;
 }) {
     const [imgError, setImgError] = useState(false);
 
@@ -44,6 +46,7 @@ export function OptimizedProductImage({
                 src={src}
                 alt={alt}
                 fill
+                priority={priority}
                 sizes="(max-width: 768px) 50vw, (max-width: 1280px) 25vw, 20vw"
                 className="object-contain"
                 onError={() => setImgError(true)}

@@ -1,22 +1,35 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import React from 'react';
 import prisma from "@/lib/prisma";
 import { Section, SectionHeader } from "@/components/ui/Section";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import * as LucideIcons from "lucide-react";
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
 import { getStoreSettings, getWhatsAppUrl, formatOpeningHours, isWhatsAppEnabled, canBuyOldPhones, canExchangeOldPhones, canSellUsedRefurbished } from "@/lib/settings";
 import { withDatabaseFallback } from "@/lib/database-fallback";
+import { buildMetadata, generateServiceSchema } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
     const settings = await getStoreSettings();
-    return {
-        title: `Mobile Services | ${settings.businessName}`,
-        description: `Explore mobile sales, repairing, accessories, old phone purchase, phone exchange, and new & pre-owned phones at ${settings.businessName}.`
-    };
+    const brandName = settings.displayName || settings.businessName;
+
+    return buildMetadata({
+        title: `Mobile Sales, Repairing & Exchange Services in Meerut | ${brandName}`,
+        description: `Comprehensive mobile phone services at ${settings.businessName} in Partapur, Meerut. Mobile repairing, screen replacement, battery replacement, old phone exchange, and genuine accessories.`,
+        path: "/services",
+        keywords: [
+            "Mobile repairing in Partapur",
+            "Smartphone repair Meerut",
+            "Screen replacement Partapur Meerut",
+            "Phone exchange Meerut",
+            "Battery replacement Meerut",
+            "Mobile accessories Partapur",
+        ],
+    });
 }
 
 export default async function ServicesPage() {
@@ -38,21 +51,70 @@ export default async function ServicesPage() {
         return true;
     });
 
+    const serviceSchemas = services.map(s => generateServiceSchema({
+        name: s.title,
+        description: s.description,
+        path: '/services',
+    }));
+
     return (
         <div className="flex flex-col w-full bg-background min-h-screen">
-            {/* HERO SECTION */}
-            <Section className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-secondary/80 to-background">
-                <div className="absolute inset-0 bg-grid-white/[0.02]" />
-                <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-[100px] pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchemas) }}
+            />
 
-                <div className="container mx-auto px-4 md:px-6 max-w-4xl text-center relative z-10 transition-all">
-                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-6">
-                        Services That Keep You Connected
-                    </h1>
-                    <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-                        From buying your next smartphone to repairing or exchanging your current device, {settings.businessName} helps you with your everyday mobile needs.
-                    </p>
+            {/* HERO SECTION */}
+            <Section className="relative pt-28 pb-16 md:py-28 overflow-hidden bg-gradient-to-b from-secondary/80 to-background">
+                <div className="container mx-auto px-4 md:px-6 max-w-5xl">
+                    <Breadcrumbs items={[{ name: "Services", path: "/services" }]} />
+
+                    <div className="text-center relative z-10 transition-all mt-6">
+                        <span className="text-accent text-xs font-bold uppercase tracking-widest block mb-3">
+                            Expert Mobile Solutions
+                        </span>
+                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-6">
+                            Mobile Sales, Repairing & Exchange in Meerut
+                        </h1>
+                        <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
+                            From buying your next smartphone to instant screen replacement, battery repair, or exchanging your existing device, {settings.businessName} has you covered.
+                        </p>
+                    </div>
+                </div>
+            </Section>
+
+            {/* SPECIALIZED REPAIR HUBS */}
+            <Section className="py-8 bg-secondary/10 border-b border-white/5" contained={true}>
+                <div className="max-w-5xl mx-auto">
+                    <span className="text-xs uppercase tracking-widest text-gray-400 font-bold block mb-4 text-center">
+                        Specialized Repair & Support Hubs
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <Link
+                            href="/services/mobile-repairing"
+                            className="p-5 rounded-2xl bg-secondary/30 hover:bg-secondary/60 border border-white/5 hover:border-accent/40 transition-all text-center group"
+                        >
+                            <LucideIcons.Wrench className="w-6 h-6 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                            <h2 className="text-base font-bold text-white mb-1">Mobile Repairing</h2>
+                            <p className="text-xs text-gray-400">Complete hardware, motherboard & water damage diagnosis</p>
+                        </Link>
+                        <Link
+                            href="/services/screen-replacement"
+                            className="p-5 rounded-2xl bg-secondary/30 hover:bg-secondary/60 border border-white/5 hover:border-accent/40 transition-all text-center group"
+                        >
+                            <LucideIcons.Smartphone className="w-6 h-6 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                            <h2 className="text-base font-bold text-white mb-1">Screen Replacement</h2>
+                            <p className="text-xs text-gray-400">Original display fitting for iPhone, Samsung, Realme & more</p>
+                        </Link>
+                        <Link
+                            href="/services/battery-replacement"
+                            className="p-5 rounded-2xl bg-secondary/30 hover:bg-secondary/60 border border-white/5 hover:border-accent/40 transition-all text-center group"
+                        >
+                            <LucideIcons.BatteryCharging className="w-6 h-6 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                            <h2 className="text-base font-bold text-white mb-1">Battery Replacement</h2>
+                            <p className="text-xs text-gray-400">High-capacity battery replacements with health warranty</p>
+                        </Link>
+                    </div>
                 </div>
             </Section>
 
@@ -65,8 +127,6 @@ export default async function ServicesPage() {
                             : LucideIcons.Wrench;
 
                         const whatsappMessage = encodeURIComponent(`Hello, I would like to enquire about ${service.title} at ${settings.businessName}.`);
-
-                        // Parse features since the backend typing has it inherently now
                         const featuresArray: string[] = (service as any).features || [];
 
                         return (
@@ -118,22 +178,22 @@ export default async function ServicesPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                     <div>
                         <SectionHeader
-                            title={`Why Visit ${settings.displayName || settings.businessName}?`}
-                            subtitle="Providing reliable, everyday mobile solutions for our customers."
+                            title={`Why Choose ${settings.displayName || settings.businessName}?`}
+                            subtitle="Local trust, verified parts, transparent pricing, and fast turnaround."
                             className="mb-8"
                         />
                         <p className="text-gray-400 mb-8 max-w-lg leading-relaxed text-lg">
-                            We are committed to delivering the best store experience with all the services you need under one roof.
+                            We have served thousands of smartphone users across Partapur, Aminagar Urf Bhurbaral, and Greater Meerut with genuine products, authentic parts, and fair trade valuations.
                         </p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {[
-                            "Multiple smartphone brands",
-                            "New & pre-owned phone options",
-                            "Old phone purchase & exchange",
-                            "In-store mobile repairing",
-                            "WhatsApp enquiries",
-                            `Convenient store timings: ${formatOpeningHours(settings.openingTime, settings.closingTime)}`
+                            "All Top Smartphone Brands (Apple, Samsung, OnePlus, Realme, Vivo, Oppo)",
+                            "Certified Pre-Owned & Refurbished Devices with In-Store Testing",
+                            "Fair Old Phone Trade-In & Instant Spot Cash Options",
+                            "Same-Day Screen, Battery & Charging Port Repairs",
+                            "Quick WhatsApp & Direct Call Consultation",
+                            `Open 7 Days a Week: ${formatOpeningHours(settings.openingTime, settings.closingTime)}`
                         ].map((point, i) => (
                             <div key={i} className="flex items-center p-4 rounded-xl bg-background border border-white/5 shadow-sm">
                                 <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mr-4 flex-shrink-0">
@@ -149,28 +209,22 @@ export default async function ServicesPage() {
             {/* CTA SECTION */}
             <Section className="py-20 md:py-32 relative overflow-hidden" contained={true}>
                 <div className="absolute inset-0 bg-accent/5" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/10 rounded-full blur-[120px] pointer-events-none -z-10" />
-
                 <div className="max-w-3xl mx-auto text-center relative z-10">
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-                        Looking for a phone or need help with your current one?
+                        Need Repair Assistance or Phone Valuation?
                     </h2>
                     <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-                        Visit {settings.businessName} or contact us on WhatsApp.
-                        <br />
-                        <span className="block mt-4 text-sm text-gray-500 font-medium bg-secondary/50 inline-block px-4 py-2 rounded-full border border-white/5">
-                            {(settings as any).openingHoursNote || settings.weeklyOff}
-                        </span>
+                        Visit {settings.businessName} on Gagol Road, Partapur, Meerut or reach out on WhatsApp for a fast quote.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         {isWhatsAppEnabled(settings) && (
                             <a
-                                href={getWhatsAppUrl(settings)}
+                                href={getWhatsAppUrl(settings, "Hi Mahadev Mobile Gallery, I need help with mobile repairing/exchange.")}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white px-8 py-4 rounded-xl font-bold transition-all hover:scale-105 shadow-lg shadow-[#25D366]/20"
                             >
-                                <LucideIcons.Phone size={20} />
+                                <LucideIcons.MessageCircle size={20} />
                                 WhatsApp Us
                             </a>
                         )}
@@ -185,7 +239,7 @@ export default async function ServicesPage() {
                                 className="w-full sm:w-auto h-14 px-8 text-base font-bold bg-secondary hover:bg-secondary-focus hover:scale-105 transition-all text-white border-white/10"
                             >
                                 <LucideIcons.MapPin size={20} className="mr-2" />
-                                Get Directions
+                                Get Directions to Store
                             </Button>
                         </a>
                     </div>

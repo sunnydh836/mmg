@@ -60,7 +60,7 @@ export function AboutGallery({ images }: { images: GalleryItem[] }) {
                             <Camera className="w-8 h-8 text-neutral-500" />
                         </div>
                         <h3 className="text-xl font-medium text-white mb-2">Premium visuals coming soon</h3>
-                        <p className="text-neutral-400 text-center">We're updating our gallery to showcase our store.</p>
+                        <p className="text-neutral-400 text-center">We&apos;re updating our gallery to showcase our store.</p>
                     </motion.div>
                 )}
 

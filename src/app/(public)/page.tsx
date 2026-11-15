@@ -12,6 +12,7 @@ import { InstagramGallery } from "@/components/sections/InstagramGallery";
 import { LocationAndFAQ } from "@/components/sections/LocationAndFAQ";
 import { getStoreSettings, isWhatsAppEnabled, canSellUsedRefurbished } from "@/lib/settings";
 import { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
 
 import { PremiumErrorFallback } from "@/components/ui/PremiumErrorFallback";
 import { SectionErrorBoundary } from "@/components/ui/SectionErrorBoundary";
@@ -19,18 +20,24 @@ import { productCardSelect, toProductCardProduct } from "@/lib/product-card-data
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getStoreSettings();
-  const title = `${settings.displayName || settings.businessName} | Mobile Shop in Partapur, Meerut`;
-  const description = `Explore new and pre-owned smartphones, mobile accessories, mobile repairing and phone exchange at ${settings.displayName || settings.businessName} in Partapur, Meerut. Visit our shop or contact us.`;
+  const brandName = settings.displayName || settings.businessName;
+  const fullName = settings.businessName;
 
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      type: 'website',
-    },
-  };
+  return buildMetadata({
+    title: `${fullName} | Mobile Shop & Repairing in Partapur, Meerut`,
+    description: `Leading mobile store in Partapur, Meerut. Explore new smartphones, certified pre-owned phones, genuine accessories, rapid mobile screen repairing, and phone exchange at ${brandName}.`,
+    path: "/",
+    keywords: [
+      "Mobile shop in Partapur Meerut",
+      "Mobile repairing in Partapur",
+      "Smartphones in Meerut",
+      "Mobile accessories in Meerut",
+      "Second-hand mobile phones in Meerut",
+      "Phone exchange in Meerut",
+      "iPhone shop Partapur",
+      "Samsung phones Meerut",
+    ],
+  });
 }
 
 // --- Server Component Wrappers --- //

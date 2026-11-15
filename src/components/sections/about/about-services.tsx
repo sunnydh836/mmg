@@ -30,8 +30,7 @@ export function AboutServices({ services }: { services: ServiceItem[] }) {
                 >
                     {services.map((service, idx) => {
                         const isImage = service.icon?.startsWith("/");
-                        // @ts-ignore
-                        const IconComponent = !isImage && service.icon ? LucideIcons[service.icon] || LucideIcons.CheckCircle : LucideIcons.CheckCircle;
+                        const IconComponent = !isImage && service.icon ? (LucideIcons as Record<string, any>)[service.icon] || LucideIcons.CheckCircle : LucideIcons.CheckCircle;
 
                         return (
                             <motion.div

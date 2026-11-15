@@ -1,18 +1,15 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from 'next';
+import { getSiteUrl } from '@/lib/seo';
 
 export default function robots(): MetadataRoute.Robots {
-    const defaultUrl = 'https://mahadevmobilegallery.com';
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
-        ? (process.env.NEXT_PUBLIC_SITE_URL.startsWith('http') ? process.env.NEXT_PUBLIC_SITE_URL : `https://${process.env.NEXT_PUBLIC_SITE_URL}`)
-        : defaultUrl;
-    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const siteUrl = getSiteUrl();
 
     return {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/admin/', '/api/', '/_next/'],
+            disallow: ['/admin/', '/api/'],
         },
-        sitemap: `${cleanBaseUrl}/sitemap.xml`,
-    }
+        sitemap: `${siteUrl}/sitemap.xml`,
+    };
 }

@@ -24,6 +24,7 @@ const navLinks = [
     { name: "Exchange", href: "/exchange" },
     { name: "Gallery", href: "/gallery" },
     { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
 ];
 
 export const Navbar = ({ brandName, whatsappUrl, logoUrl, isWhatsAppEnabled, canExchangeOldPhones, canSellUsedRefurbished }: NavbarProps) => {

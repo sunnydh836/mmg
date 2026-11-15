@@ -8,19 +8,19 @@ export const Footer = async () => {
     return (
         <footer className="bg-secondary border-t border-border pt-16 pb-24 md:pb-8">
             <div className="container mx-auto px-4 md:px-6 max-w-7xl">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
                     {/* Brand Info */}
                     <div>
-                        <Link href="/" className="flex flex-col mb-6 block">
+                        <Link href="/" className="flex flex-col mb-4">
                             <span className="font-bold text-2xl tracking-wider text-white">
                                 {settings.displayName || settings.businessName}
                             </span>
-                            <span className="text-sm text-gray-400 tracking-widest pl-1">
+                            <span className="text-xs text-accent tracking-widest uppercase mt-1">
                                 {settings.tagline}
                             </span>
                         </Link>
                         <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                            Your trusted local destination for premium smartphones in Partapur, Meerut.
+                            Your trusted local destination for new smartphones, certified pre-owned devices, genuine accessories, phone exchange, and rapid mobile repairing in Partapur, Meerut.
                         </p>
                         <div className="flex space-x-4">
                             {settings.instagram && (
@@ -43,79 +43,80 @@ export const Footer = async () => {
 
                     {/* Quick Links */}
                     <div>
-                        <h3 className="text-white font-semibold mb-6">Quick Links</h3>
-                        <ul className="space-y-4">
-                            <li><Link href="/" className="text-gray-400 hover:text-accent text-sm transition-colors">Home</Link></li>
-                            <li><Link href="/products" className="text-gray-400 hover:text-accent text-sm transition-colors">All Products</Link></li>
-                            <li><Link href="/services" className="text-gray-400 hover:text-accent text-sm transition-colors">Our Services</Link></li>
-                            <li><Link href="/exchange" className="text-gray-400 hover:text-accent text-sm transition-colors">Phone Exchange</Link></li>
-                            <li><Link href="/gallery" className="text-gray-400 hover:text-accent text-sm transition-colors">Gallery</Link></li>
-                            <li><Link href="/about" className="text-gray-400 hover:text-accent text-sm transition-colors">About Us</Link></li>
-                            <li><Link href="/faq" className="text-gray-400 hover:text-accent text-sm transition-colors">FAQ</Link></li>
+                        <h3 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">Explore</h3>
+                        <ul className="space-y-3 text-sm">
+                            <li><Link href="/" className="text-gray-400 hover:text-accent transition-colors">Home</Link></li>
+                            <li><Link href="/products" className="text-gray-400 hover:text-accent transition-colors">All Smartphones</Link></li>
+                            <li><Link href="/pre-owned" className="text-gray-400 hover:text-accent transition-colors">Pre-Owned Phones</Link></li>
+                            <li><Link href="/exchange" className="text-gray-400 hover:text-accent transition-colors">Old Phone Exchange</Link></li>
+                            <li><Link href="/gallery" className="text-gray-400 hover:text-accent transition-colors">Store Gallery</Link></li>
+                            <li><Link href="/about" className="text-gray-400 hover:text-accent transition-colors">About Us</Link></li>
+                            <li><Link href="/faq" className="text-gray-400 hover:text-accent transition-colors">FAQ</Link></li>
+                            <li><Link href="/contact" className="text-gray-400 hover:text-accent transition-colors">Contact Us</Link></li>
                         </ul>
                     </div>
 
-                    {/* Contact */}
+                    {/* Repair & Services Hubs */}
                     <div>
-                        <h3 className="text-white font-semibold mb-6">Contact Us</h3>
-                        <ul className="space-y-4">
+                        <h3 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">Mobile Repairing</h3>
+                        <ul className="space-y-3 text-sm">
+                            <li><Link href="/services" className="text-gray-400 hover:text-accent transition-colors">All Store Services</Link></li>
+                            <li><Link href="/services/mobile-repairing" className="text-gray-400 hover:text-accent transition-colors">Mobile Repairing in Partapur</Link></li>
+                            <li><Link href="/services/screen-replacement" className="text-gray-400 hover:text-accent transition-colors">Screen Replacement</Link></li>
+                            <li><Link href="/services/battery-replacement" className="text-gray-400 hover:text-accent transition-colors">Battery Replacement</Link></li>
+                            <li><Link href="/contact" className="text-gray-400 hover:text-accent transition-colors">Store Directions</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Contact & Hours */}
+                    <div>
+                        <h3 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">Store Location</h3>
+                        <ul className="space-y-4 text-sm">
                             <li className="flex items-start">
-                                <MapPin size={18} className="text-accent mt-1 mr-3 flex-shrink-0" />
+                                <MapPin size={18} className="text-accent mt-0.5 mr-3 flex-shrink-0" />
                                 {settings.mapsUrl ? (
-                                    <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white text-sm transition-colors leading-relaxed block max-w-[250px]">
+                                    <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors leading-relaxed block">
                                         {settings.address}
                                     </a>
                                 ) : (
-                                    <span className="text-gray-400 text-sm leading-relaxed block max-w-[250px]">{settings.address}</span>
+                                    <span className="text-gray-400 leading-relaxed block">{settings.address}</span>
                                 )}
                             </li>
                             <li className="flex items-center">
                                 <Phone size={18} className="text-accent mr-3 flex-shrink-0" />
-                                <a href={getPhoneHref(settings)} className="text-gray-400 hover:text-white text-sm transition-colors">
+                                <a href={getPhoneHref(settings)} className="text-gray-400 hover:text-white transition-colors font-semibold">
                                     {formatPhoneNumber(settings.phone)}
                                 </a>
                             </li>
                             {isWhatsAppEnabled(settings) && (
                                 <li className="flex items-center">
                                     <MessageCircle size={18} className="text-[#25D366] mr-3 flex-shrink-0" />
-                                    <a href={getWhatsAppUrl(settings)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white text-sm transition-colors">
-                                        WhatsApp Us
+                                    <a href={getWhatsAppUrl(settings)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                                        WhatsApp Enquiry
                                     </a>
                                 </li>
                             )}
-                        </ul>
-                    </div>
-
-                    {/* Hours */}
-                    <div>
-                        <h3 className="text-white font-semibold mb-6">Opening Hours</h3>
-                        <ul className="space-y-4">
-                            <li className="flex items-center">
-                                <Clock size={18} className="text-accent mr-3 flex-shrink-0" />
-                                <span className="text-gray-400 text-sm">
-                                    Available: {formatOpeningHours(settings.openingTime, settings.closingTime)}
-                                </span>
+                            <li className="flex items-start">
+                                <Clock size={18} className="text-accent mr-3 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <span className="text-gray-300 block">
+                                        {formatOpeningHours(settings.openingTime, settings.closingTime)}
+                                    </span>
+                                    <span className="text-gray-500 text-xs block mt-0.5">
+                                        Open Monday - Sunday
+                                    </span>
+                                </div>
                             </li>
-                            {(settings as any).openingHoursNote ? (
-                                <li className="text-gray-500 text-xs italic mt-4 leading-relaxed max-w-[250px]">
-                                    {(settings as any).openingHoursNote}
-                                </li>
-                            ) : (
-                                settings.weeklyOff && settings.weeklyOff !== "unknown" && (
-                                    <li className="text-gray-500 text-xs italic mt-4">
-                                        {settings.weeklyOff}
-                                    </li>
-                                )
-                            )}
                         </ul>
                     </div>
                 </div>
 
                 <div className="border-t border-border pt-8 mt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-                    <p>&copy; {new Date().getFullYear()} {settings.businessName}. All rights reserved.</p>
-                    <div className="flex space-x-4 mt-4 md:mt-0">
+                    <p>&copy; {new Date().getFullYear()} {settings.businessName}. Partapur, Meerut. All rights reserved.</p>
+                    <div className="flex space-x-6 mt-4 md:mt-0">
                         <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
                         <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+                        <Link href="/contact" className="hover:text-white transition-colors">Store Locator</Link>
                     </div>
                 </div>
             </div>

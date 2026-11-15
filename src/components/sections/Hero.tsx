@@ -99,7 +99,7 @@ export const HeroSection = ({ heroImages = [], settings }: { heroImages?: HeroIm
                     >
                         <motion.div variants={slideUp} className="mb-6">
                             <span className="text-gray-400 text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase">
-                                WELCOME TO {settings.businessName.toUpperCase()}
+                                WELCOME TO {settings.businessName.toUpperCase()} &bull; PARTAPUR, MEERUT
                             </span>
                         </motion.div>
 
@@ -109,7 +109,7 @@ export const HeroSection = ({ heroImages = [], settings }: { heroImages?: HeroIm
                         >
                             Your Next Phone <br />
                             <span className="text-gray-500">
-                                Is Waiting.
+                                In Partapur, Meerut.
                             </span>
                         </motion.h1>
 
@@ -117,7 +117,7 @@ export const HeroSection = ({ heroImages = [], settings }: { heroImages?: HeroIm
                             variants={slideUp}
                             className="text-lg sm:text-xl text-gray-400 mb-10 leading-relaxed font-light max-w-xl"
                         >
-                            Smartphones, accessories, repairing and phone exchange — all under one roof.
+                            New smartphones, certified pre-owned devices, express mobile repairing, and phone exchange — all under one roof on Gagol Road.
                         </motion.p>
 
                         <motion.div variants={slideUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-start">

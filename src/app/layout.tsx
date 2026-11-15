@@ -1,32 +1,89 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { getStoreSettings } from "@/lib/settings";
+import {
+  getSiteUrl,
+  generateLocalBusinessSchema,
+  generateWebSiteSchema,
+  generateOrganizationSchema,
+} from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getStoreSettings();
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : new URL('http://localhost:3000');
+  const siteUrl = getSiteUrl();
+  const brandName = settings.displayName || settings.businessName;
+  const fullName = settings.businessName;
 
-  return {
-    metadataBase: baseUrl,
+  const titleDefault = `${brandName} | Mobile Shop & Repairing in Partapur, Meerut`;
+  const description = `Shop new smartphones, certified pre-owned phones, genuine mobile accessories, old phone exchange, and rapid mobile repairing at ${fullName} in Partapur, Meerut.`;
+
+  const metadata: Metadata = {
+    metadataBase: new URL(siteUrl),
     title: {
-      default: `${settings.displayName || settings.businessName} | Mobiles, Accessories & Repairing`,
-      template: `%s | ${settings.displayName || settings.businessName}`,
+      default: titleDefault,
+      template: `%s | ${brandName}`,
     },
-    description: `Explore new and pre-owned smartphones, mobile accessories, mobile repairing and phone exchange at ${settings.displayName || settings.businessName} in Partapur, Meerut.`,
+    description,
+    keywords: [
+      brandName,
+      fullName,
+      "Mobile shop in Partapur Meerut",
+      "Mobile repairing in Partapur",
+      "Smartphones in Meerut",
+      "Mobile accessories Meerut",
+      "Second-hand mobile phones in Meerut",
+      "Phone exchange Meerut",
+      "iPhone repair Meerut",
+      "Android repair Partapur",
+    ],
+    alternates: {
+      canonical: "/",
+    },
     openGraph: {
-      type: 'website',
-      locale: 'en_IN',
-      url: '/',
-      title: settings.businessName,
-      description: `Explore new and pre-owned smartphones, mobile accessories, mobile repairing and phone exchange at ${settings.displayName || settings.businessName} in Partapur, Meerut.`,
-      siteName: settings.businessName,
+      type: "website",
+      locale: "en_IN",
+      url: `${siteUrl}/`,
+      title: titleDefault,
+      description,
+      siteName: fullName,
+      images: [
+        {
+          url: settings.logoUrl || `${siteUrl}/icon.png`,
+          width: 1200,
+          height: 630,
+          alt: fullName,
+        },
+      ],
     },
     twitter: {
-      card: 'summary_large_image',
-      title: settings.businessName,
-      description: `Explore new and pre-owned smartphones, mobile accessories, mobile repairing and phone exchange at ${settings.displayName || settings.businessName} in Partapur, Meerut.`,
+      card: "summary_large_image",
+      title: titleDefault,
+      description,
+      images: [settings.logoUrl || `${siteUrl}/icon.png`],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      nocache: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
   };
+
+  const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+  if (googleVerification) {
+    metadata.verification = {
+      google: googleVerification,
+    };
+  }
+
+  return metadata;
 }
 
 export default async function RootLayout({
@@ -35,47 +92,44 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getStoreSettings();
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : new URL('http://localhost:3000');
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'MobilePhoneStore',
-    name: settings.businessName,
-    description: "Closed on the last Saturday of every month.",
-    telephone: settings.phone,
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: settings.address,
-      addressLocality: "Meerut",
-      addressRegion: "Uttar Pradesh",
-      postalCode: "250103",
-      addressCountry: "IN"
-    },
-    openingHoursSpecification: [
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: [
-          'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-        ],
-        opens: settings.openingTime,
-        closes: settings.closingTime
-      }
+  const graphSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      generateLocalBusinessSchema(settings),
+      generateWebSiteSchema(settings),
+      generateOrganizationSchema(settings),
     ],
-    url: baseUrl.toString(),
-    sameAs: [
-      settings.instagram,
-      settings.youtube,
-      settings.facebook
-    ].filter(Boolean)
   };
 
   return (
     <html lang="en">
-      <body className="min-h-screen bg-background text-foreground flex flex-col">
+      <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(graphSchema) }}
         />
+      </head>
+      <body className="min-h-screen bg-background text-foreground flex flex-col">
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
         {children}
       </body>
     </html>

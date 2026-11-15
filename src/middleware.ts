@@ -5,9 +5,18 @@ import { decrypt } from "@/lib/auth";
 const publicRoutes = ["/admin/login"];
 
 export async function middleware(request: NextRequest) {
+    const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || "").toLowerCase().split(":")[0];
     const path = request.nextUrl.pathname;
+    const search = request.nextUrl.search;
 
-    // Apply only to /admin routes
+    // 1. Canonical Domain & Alias Redirects (HTTP 308 Permanent Redirect)
+    // Redirect www subdomain and Vercel deployment alias to official domain https://mmgpartapur.com
+    if (host === "www.mmgpartapur.com" || host === "mmg-zeta.vercel.app") {
+        const canonicalUrl = new URL(`https://mmgpartapur.com${path}${search}`);
+        return NextResponse.redirect(canonicalUrl, 308);
+    }
+
+    // 2. Admin Authentication Checks (Apply only to /admin routes)
     if (!path.startsWith("/admin")) {
         return NextResponse.next();
     }
