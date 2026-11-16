@@ -1,9 +1,15 @@
+import React from 'react';
+import Loader from '@/components/ui/Loader';
+
 export default function LoadingAdminProducts() {
     return (
-        <div className="mx-auto w-full max-w-7xl animate-pulse space-y-6 p-8" aria-label="Loading products">
-            <div className="h-12 w-72 rounded bg-white/10" />
-            <div className="h-16 rounded-2xl bg-white/5" />
-            <div className="h-96 rounded-2xl bg-white/5" />
-        </div>
+        <aside
+            aria-live="assertive"
+            aria-busy="true"
+            aria-label="Loading admin products"
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#09090b]/85 backdrop-blur-md"
+        >
+            <Loader />
+        </aside>
     );
 }

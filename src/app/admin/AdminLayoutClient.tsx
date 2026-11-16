@@ -36,14 +36,15 @@ export default function AdminLayoutClient({ children, logoUrl, brandName }: Admi
     ];
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+    const activeLogoUrl = logoUrl || "/logo.jpg";
 
     const SidebarContent = () => (
         <>
             <div className="p-6 border-b border-white/5 flex items-center justify-between lg:block">
                 <Link href="/admin" className="flex items-center gap-3 focus:outline-none" onClick={() => setIsMobileMenuOpen(false)}>
-                    {logoUrl && (
-                        <div className="relative w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center">
-                            <Image src={logoUrl} alt={`${brandName} logo`} fill className="object-contain" />
+                    {activeLogoUrl && (
+                        <div className="relative w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full overflow-hidden border border-white/10 bg-black">
+                            <Image src={activeLogoUrl} alt={`${brandName} logo`} fill className="object-cover" />
                         </div>
                     )}
                     <div className="flex flex-col">
