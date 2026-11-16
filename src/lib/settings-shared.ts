@@ -25,7 +25,7 @@ export const defaultSettings = {
     hasOldPhoneExchange: true,
     hasUsedPhones: true,
     hasGifts: true,
-    logoUrl: null as string | null,
+    logoUrl: "/logo.jpg" as string | null,
     openingHoursNote: "Closed on the last Saturday of every month." as string | null,
 };
 

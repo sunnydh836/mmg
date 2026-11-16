@@ -32,6 +32,7 @@ export const Navbar = ({ brandName, whatsappUrl, logoUrl, isWhatsAppEnabled, can
     const [scrolled, setScrolled] = useState(false);
     const [logoFailed, setLogoFailed] = useState(false);
     const pathname = usePathname();
+    const activeLogoUrl = logoUrl || "/logo.jpg";
 
     // Split the brand name to create the premium visual hierarchy (MAHADEV vs MOBILE GALLERY)
     const nameParts = brandName.split(' ');
@@ -64,14 +65,14 @@ export const Navbar = ({ brandName, whatsappUrl, logoUrl, isWhatsAppEnabled, can
                     {/* LEFT: Logo / Brand */}
                     <div className="flex-shrink-0 z-50">
                         <Link href="/" className="flex items-center gap-3 group focus:outline-none">
-                            {logoUrl && !logoFailed && (
-                                <div className="relative w-[34px] h-[34px] md:w-[44px] md:h-[44px] shrink-0 flex items-center justify-center">
+                            {activeLogoUrl && !logoFailed && (
+                                <div className="relative w-[36px] h-[36px] md:w-[44px] md:h-[44px] rounded-full overflow-hidden shrink-0 flex items-center justify-center border border-white/10 bg-black">
                                     <Image
-                                        src={logoUrl}
+                                        src={activeLogoUrl}
                                         alt={`${brandName} logo`}
                                         fill
-                                        sizes="(max-width: 768px) 34px, 44px"
-                                        className="object-contain transition-transform duration-300 group-hover:scale-105"
+                                        sizes="(max-width: 768px) 36px, 44px"
+                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
                                         onError={() => setLogoFailed(true)}
                                     />
                                 </div>

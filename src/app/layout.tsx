@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Script from "next/script";
 import "./globals.css";
 import { getStoreSettings } from "@/lib/settings";
+import PageNavigationLoader from "@/components/ui/PageNavigationLoader";
 import {
   getSiteUrl,
   generateLocalBusinessSchema,
@@ -39,6 +41,16 @@ export async function generateMetadata(): Promise<Metadata> {
     ],
     alternates: {
       canonical: "/",
+    },
+    icons: {
+      icon: [
+        { url: "/icon.png", type: "image/png" },
+        { url: "/logo.jpg", type: "image/jpeg" },
+      ],
+      apple: [
+        { url: "/apple-icon.png", type: "image/png" },
+      ],
+      shortcut: ["/icon.png"],
     },
     openGraph: {
       type: "website",
@@ -112,6 +124,9 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-background text-foreground flex flex-col">
+        <Suspense fallback={null}>
+          <PageNavigationLoader />
+        </Suspense>
         {gaId && (
           <>
             <Script
