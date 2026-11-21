@@ -44,13 +44,18 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
-        { url: "/icon.png", type: "image/png" },
-        { url: "/logo.jpg", type: "image/jpeg" },
+        {
+          url: "/favicon.ico",
+          type: "image/x-icon",
+        },
       ],
       apple: [
-        { url: "/apple-icon.png", type: "image/png" },
+        {
+          url: "/apple-icon.png",
+          type: "image/png",
+        },
       ],
-      shortcut: ["/icon.png"],
+      shortcut: ["/favicon.ico"],
     },
     openGraph: {
       type: "website",
